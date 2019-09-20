@@ -1,10 +1,29 @@
-import json
-import requests
+# -*- coding: utf-8 -*-
 
+# Copyright 2019 (c) Graham.Williams@togaware.com
+# Licensed under the MIT License.
+#
 # Script to identify Microsoft devs amongst those raising issues
 # within the best practice repositories.
 
-# Using authentication
+import json
+import requests
+import argparse
+
+# Command line argument identifies the repository as in microsoft/nlp.
+
+option_parser = argparse.ArgumentParser(add_help=False)
+
+option_parser.add_argument(
+    'repos',
+    nargs="+",
+    help='name of github repository as in microsoft/nlp')
+
+args = option_parser.parse_args()
+repos = args.repos
+
+# Use authentication.  For information on generating a token see
+# https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/
         
 token = 'XXXX'
 headers = {'Authorization': 'token ' + token}
@@ -13,17 +32,17 @@ headers = {'Authorization': 'token ' + token}
 
 issues = {}
 
-for repo in ['microsoft/nlp', 'microsoft/computervision', 'microsoft/recommenders']:
-    print(repo)
+for repo in repos:
     i = 1
     while True:
-        response = requests.get('https://api.github.com/repos/' + repo + '/issues?state=all&page=' + str(i) + '&per_page=100').json()
+        response = requests.get(f'https://api.github.com/repos/{repo}' +
+                                f'/issues?state=all&page={str(i)}' +
+                                f'&per_page=100').json()
         if len(response) == 0: break
         if len(issues) == 0:
             issues = response
         else:
             issues = issues + response
-        print(i, len(response), len(issues))
         i += 1    
 
 # Obtain a unique list of all user logins.
@@ -42,18 +61,22 @@ len(users)
 internal = []
 external = []
 
+# Not particularly robust in the case of having gone over the github
+# API call limit which returns status code 404.
+
 for u in users:
-    if requests.get('https://api.github.com/orgs/microsoft/members/' + u, headers=headers).status_code == 204:
+    if requests.get(f'https://api.github.com/orgs/microsoft/members/{u}', headers=headers).status_code == 204:
         internal += [u]
-    elif requests.get('https://api.github.com/orgs/azure/members/' + u, headers=headers).status_code == 204:
+    elif requests.get(f'https://api.github.com/orgs/azure/members/{u}', headers=headers).status_code == 204:
         internal += [u]
     else:
         external += [u]
 
-# Print list of users in microsoft
+# Print the Microsoft devs in a form that can be pasted into
+# issues.py, for example.
 
-print("Microsoft internal devs are:")
+print(f"Microsoft devs ({len(internal)}):")
 print(internal)
-
-print(f"There are {len(internal)} internal devs raising issues.")
-print(f"There are {len(external)} other devs raising issues.")
+print("")
+print(f"Non-Microsoft devs ({len(external)}):")
+print(external)
