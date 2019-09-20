@@ -1,9 +1,14 @@
+# -*- coding: utf-8 -*-
+
+# Copyright 2019 (c) Graham.Williams@togaware.com
+# Licensed under the MIT License.
+#
+# Script to calculate metrics for who are raising issues and pull
+# requests.
+
 import json
 import requests
 import argparse
-
-# Script to calculate metrics for who are raising issues and pull
-# requests.
 
 # Command line argument identifies the repository as in microsoft/nlp.
 
@@ -17,7 +22,10 @@ option_parser.add_argument(
 args = option_parser.parse_args()
 repos = args.repos
 
-# Cached list of known Microsoft users as generated from orgs.py.
+# Cached list of known Microsoft users raising issues for one of a set
+# of repositoris of interest as generated from orgs.py, rather than
+# using multiple REST calls here. Just copy and paste the output of
+# orgs.py here.
 
 msdevs = [XXXX]
 
