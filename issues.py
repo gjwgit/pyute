@@ -37,13 +37,10 @@ for repo in repos:
     i = 1
 
     while True:
-        response = requests.get('https://api.github.com/repos/' + repo + '/issues?state=all&page=' + str(i) + '&per_page=100').json()
+        response = requests.get(f'https://api.github.com/repos/{repo}/issues?state=all&page={str(i)}&per_page=100').json()
         if len(response) == 0: break
-        if len(issues) == 0:
-            issues = response
-        else:
-            issues = issues + response
-        i += 1    
+        issues = issues + response if len(issues) > 0 else response
+        i += 1
 
     external = internal = 0
 
