@@ -37,7 +37,9 @@ for repo in repos:
     i = 1
 
     while True:
-        response = requests.get(f'https://api.github.com/repos/{repo}/issues?state=all&page={str(i)}&per_page=100').json()
+        response = requests.get(f'https://api.github.com/repos/{repo}' +
+                                f'/issues?state=all&page={str(i)}' +
+                                f'&per_page=100').json()
         if len(response) == 0: break
         issues = issues + response if len(issues) > 0 else response
         i += 1
