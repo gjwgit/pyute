@@ -3,8 +3,10 @@
 # Copyright 2019 (c) Graham.Williams@togaware.com
 # Licensed under the MIT License.
 #
-# Script to report populatrity metrics from githug.
-# external.
+# Script to report populatrity metrics from github.
+#
+# python3 gitpop referrers microsoft/recommenders
+# python3 gitpop all microsoft/recommenders
 
 import sys
 import os
