@@ -5,14 +5,17 @@
 #
 # Script to report populatrity metrics from github.
 #
-# python3 gitpop referrers microsoft/recommenders
-# python3 gitpop all microsoft/recommenders
+# Top 10 referrers past 14 days
+# gitpop referrers microsoft/recommenders
+# gitpop all microsoft/recommenders
 
 import sys
 import os
 import json
 import requests
 import argparse
+
+exec(open("secrets.py").read()) # token=
 
 # Command line argument identifies the metric and repository as in
 # microsoft/nlp.
@@ -33,7 +36,6 @@ metric = args.metric
 repos = args.repos
 
 headers = None
-token = 'XXXX'
 headers = {'Authorization': 'token ' + token}
 
 if metric == "all":
@@ -56,16 +58,19 @@ for metric in metrics:
             print("API rate limit exceeded.", file=sys.stderr)
             print(response.json())
             sys.exit(403)
-        response = response.json()
-        if len(response) == 0: break
 
-        if metric == "traffic/popular/referrers":
-            for m in response:
-                print(f"{metric},{repo},{m['referrer']}," +
-                      f"{m['count']},{m['uniques']}")
-        elif metric == "traffic/popular/paths":
-            for m in response:
-                print(f"{metric},{repo},{m['path']}," +
-                      f"{m['count']},{m['uniques']},{m['title']}")
-        elif metric in ["traffic/views", "traffic/clones"]:
-            print(f"{metric},{repo},{response['count']},{response['uniques']}")
+        if response.ok:
+            response = response.json()
+            if len(response) == 0: break
+
+            if metric == "traffic/popular/referrers":
+                for m in response:
+                    print(f"{metric},{repo},{m['referrer']}," +
+                          f"{m['count']},{m['uniques']}")
+            elif metric == "traffic/popular/paths":
+                for m in response:
+                    print(f"{metric},{repo},{m['path']}," +
+                          f"{m['count']},{m['uniques']},{m['title']}")
+            elif metric in ["traffic/views", "traffic/clones"]:
+                print(f"{metric},{repo},{response['count']}," +
+                      f"{response['uniques']}")
