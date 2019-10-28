@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright 2019 (c) Graham.Williams@microsoft.com
+# Copyright 2019 (c) Graham.Williams@togaware.com
 # Licensed under the MIT License.
 #
 # Script to calculate metrics, separating internal (Microsoft) and
@@ -12,7 +12,9 @@ import json
 import requests
 import argparse
 
-# Command line argument identifies the metrix and the repositories as
+exec(open("secrets.py").read()) # token= and devs=
+
+# Command line argument identifies the metric and the repositories as
 # in microsoft/nlp.
 
 option_parser = argparse.ArgumentParser(add_help=False)
@@ -34,15 +36,13 @@ repos = args.repos
 # hour (30). With an authorization token you get more.
 
 headers = None
-token = 'XXXX'
 headers = {'Authorization': 'token ' + token}
 
-# Cached list of known Microsoft users raising issues for one of a set
-# of repositoris of interest as generated from orgs.py, rather than
-# using multiple REST calls here. Just copy and paste the output of
-# orgs.py here.
-
-msdevs = [XXXX]
+# The secrets file also includes the list of devs that are regarded as
+# internal devs. All other devs are thus external devs. Cached list of
+# known devs raising issues for one of a set of repositoris of
+# interest as generated from orgs.py, rather than using multiple REST
+# calls here. The list is built from the output of orgs.py here.
 
 for repo in repos:
     
@@ -58,27 +58,34 @@ for repo in repos:
         if response.status_code == 403:
             print("API rate limit exceeded.", file=sys.stderr)
             sys.exit(403)
-        response = response.json()
-        if len(response) == 0: break
-        metrics = metrics + response if len(metrics) > 0 else response
-        i += 1
-
+        if response.ok:
+            response = response.json()
+            if len(response) == 0: break
+            metrics = metrics + response if len(metrics) > 0 else response
+            i += 1
+            
+#    print(json.dumps(metrics, indent=2))
+    
     external = internal = 0
 
+    # NOTE - issue with counting recursive forks.....
+    
     for m in metrics:
+        subforks = 0
         if metric in ('issues', 'pulls'):
             login = m['user']['login']
         elif metric in ('forks'):
             login = m['owner']['login']
+            subforks = m['forks_count']
+            print(subforks)
         elif metric in ('subscribers', 'stargazers'):
             login = m['login']
         else:
             login = m['login']
             
-        if login in msdevs:
+        if login in devs:
             internal += 1
         else:
-            external += 1
+            external += 1 + subforks
 
-    print(f"{metric},{repo},{len(metrics)},{internal},{external}," +
-          f"{round(100*external/(internal+external))}")
+    print(f"{metric},{repo},{internal+external},{internal},{external},{round(100*external/(internal+external))}")
